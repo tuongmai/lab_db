@@ -1,0 +1,59 @@
+ALTER TABLE public.countries RENAME TO country_new;
+
+ALTER TABLE public.locations ADD region_id int NULL;
+
+ALTER TABLE locations RENAME TO locations_old;
+CREATE TABLE locations (
+	id int NULL,
+	location_id int4 NOT NULL,
+	street_address varchar(25) NULL,
+	postal_code varchar(12) NULL,
+	state_province varchar(12) NULL,
+	country_id bpchar(2) NULL,
+	region_id int4 NULL,
+	CONSTRAINT locations_pk PRIMARY KEY (location_id)
+);
+ALTER TABLE locations ADD CONSTRAINT locations_fk FOREIGN KEY (country_id) REFERENCES country_new(country_id);
+INSERT INTO locations(location_id,street_address,postal_code,state_province,country_id,region_id) SELECT location_id,street_address,postal_code,state_province,country_id,region_id FROM locations_old;
+DROP TABLE locations_old; 
+
+ALTER TABLE locations DROP COLUMN region_id;
+ALTER TABLE locations RENAME TO locations_old;
+CREATE TABLE locations (
+	id int4,
+	location_id int4 NOT NULL,
+	street_address varchar(25) NULL,
+	postal_code varchar(12) NULL,
+	state_province varchar(12) NULL,
+	region_id int NULL,
+	country_id bpchar(2) NULL,
+	CONSTRAINT locations_new_pk PRIMARY KEY (location_id)
+);
+ALTER TABLE locations ADD CONSTRAINT locations_fk FOREIGN KEY (country_id) REFERENCES country_new(country_id);
+INSERT INTO locations(id,location_id,street_address,postal_code,state_province,country_id) SELECT id,location_id,street_address,postal_code,state_province,country_id FROM locations_old;
+DROP TABLE locations_old;
+
+ALTER TABLE public.locations DROP CONSTRAINT locations_fk;
+ALTER TABLE public.locations ALTER COLUMN country_id TYPE int USING country_id::int;
+
+ALTER TABLE public.locations DROP COLUMN city;
+
+ALTER TABLE public.locations RENAME COLUMN state_provine TO state;
+
+ALTER TABLE public.locations ADD CONSTRAINT locations_pk PRIMARY KEY (location_id);
+
+ALTER TABLE public.locations ADD CONSTRAINT locations_pk PRIMARY KEY (location_id,country_id);
+
+ALTER TABLE public.locations DROP CONSTRAINT locations_pk;
+
+ALTER TABLE public.job_history ADD CONSTRAINT job_history_fk FOREIGN KEY (job_id) REFERENCES jobs(job_id);
+
+ALTER TABLE public.job_history ADD CONSTRAINT fk_job_id FOREIGN KEY (job_id) REFERENCES jobs(job_id);
+
+ALTER TABLE public.job_history DROP CONSTRAINT fk_job_id;
+
+CREATE INDEX indx_job_id ON public.job_history (job_id);
+
+DROP INDEX public.indx_job_id;
+
+
